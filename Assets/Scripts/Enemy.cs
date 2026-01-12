@@ -33,7 +33,11 @@ public class Enemy : MonoBehaviour
 
         Chasing,
 
-        Searching
+        Searching,
+
+        Waiting,
+
+        Attacking
     }
 
     public EnemyState currentState; // Almacena el estado actual que tiene
@@ -71,6 +75,18 @@ public class Enemy : MonoBehaviour
                 default:
 
                     Patrol();
+
+                break;
+
+                case EnemyState.Waiting:
+
+                    Waiting();
+
+                break;
+
+                case EnemyState.Attacking:
+
+                    Attacking();
 
                 break;
         }
@@ -123,6 +139,16 @@ public class Enemy : MonoBehaviour
             currentState = EnemyState.Patrolling;
             _searchTimer = 0;
         }
+    }
+
+    void Attacking()
+    {
+
+    }
+
+    void Waiting()
+    {
+
     }
 
     bool RandomSearchPoint(Vector3 center, float radius, out Vector3 point)
@@ -178,6 +204,11 @@ public class Enemy : MonoBehaviour
         float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
         float distanceToPlayer = Vector3.Distance(transform.position, _player.position);
 
+        if(_player.position == _playerLastPositionKnown)
+        {
+            return true;
+        }
+
         if(distanceToPlayer > _detectionRange)
         {
             return false;
@@ -185,6 +216,20 @@ public class Enemy : MonoBehaviour
         if(angleToPlayer > _detectionAngle * 0.5f)
         {
             return false;
+        }
+
+        RaycastHit hit;
+        if(Physics.Raycast(transform.position, directionToPlayer, out hit, distanceToPlayer))
+        {
+            if(hit.collider.CompareTag("Player"))
+            {
+                _playerLastPositionKnown = _player.position;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         return true;
     }
